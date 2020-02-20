@@ -1,15 +1,13 @@
 from flask import Flask, request, jsonify, render_template
-import tensorflow as tf
 import numpy as np
-from tensorflow.keras import backend
-from tensorflow.keras.models import load_model
-
+import pickle
+from sklearn.svm import SVC
 
 app = Flask(__name__)
 
 @app.before_first_request
 def load_model_to_app():
-    app.predictor = load_model('./static/model/model.h5')
+    app.predictor = pickle.load(open('./static/model/model.pickle', 'rb'))
     
 
 @app.route("/")
@@ -24,12 +22,10 @@ def predict():
             request.form['petal_width']]
     data = np.array([np.asarray(data, dtype=float)])
 
-    predictions = app.predictor.predict(data)
-    print('INFO Predictions: {}'.format(predictions))
+    prediction = app.predictor.predict(data)
+    print('INFO Prediction: {}'.format(prediction[0]))
 
-    class_ = np.where(predictions == np.amax(predictions, axis=1))[1][0]
-
-    return render_template('index.html', pred=class_)
+    return render_template('index.html', pred=prediction[0])
 
 def main():
     """Run the app."""
