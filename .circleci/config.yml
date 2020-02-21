@@ -6,4 +6,11 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build -t rsutton/iris .
+      # build the application image
+      - run: docker build -t rsutton/iris:$CIRCLE_BRANCH .
+      # save the image
+      # - run: docker push rsutton/iris:$CIRCLE_BRANCH
+      # run the app
+      - run: 
+          name: "Smoke Test"
+          command: docker run -d --name iris -p 8000:8000 rsutton/iris:$CIRCLE_BRANCH
