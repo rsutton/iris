@@ -5,7 +5,7 @@ jobs:
     - image: circleci/python:3.7.6
     steps:
       - checkout
-      # - setup_remote_docker
+      - setup_remote_docker
       # build the application image
       - run: docker build -t rsutton/iris:$CIRCLE_BRANCH .
       # save the image
