@@ -11,6 +11,15 @@ jobs:
       # save the image
       # - run: docker push rsutton/iris:$CIRCLE_BRANCH
       # run the app
-      - run: 
-          name: "Smoke Test"
-          command: docker run -d --name iris -p 8000:8000 rsutton/iris:$CIRCLE_BRANCH
+      - run: |
+          docker run -d --name iris -p 8000:8000 rsutton/iris:$CIRCLE_BRANCH
+      - run: |
+          status=$(curl -s -X POST http://localhost:8000/api/v1/predict?sepal_length=1&sepal_width=1&petal_length=1&petal_width=1 |
+          jq -r '.prediction')
+          if [ "$status" != "1" ]; then
+            echo "Prediction error: expected 1 got $status"
+            exit 1
+          fi
+      - run: |
+          docker stop -d --name iris 
+
