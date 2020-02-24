@@ -19,3 +19,9 @@ This application was built with
 ```
 brew install circleci
 ```
+
+## Run it 
+From the project root folder:
+```
+circleci local execute
+```
