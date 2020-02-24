@@ -4,28 +4,45 @@ import pickle
 from sklearn.svm import SVC
 
 app = Flask(__name__)
+REQUIRED_PARAMETERS = ('sepal_length', 'sepal_width', 'petal_length', 'petal_width')
+
 
 @app.before_first_request
 def load_model_to_app():
     app.predictor = pickle.load(open('./static/model/model.pickle', 'rb'))
-    
+
 
 @app.route("/")
 def index():
-    return render_template('index.html', pred = 0)
+    return render_template('index.html', pred=0)
 
-@app.route('/predict', methods=['POST'])
+
+@app.route('/api/v1/predict', methods=['POST'])
 def predict():
-    data = [request.form['spatial_length'],
-            request.form['spatial_width'],
-            request.form['petal_length'], 
-            request.form['petal_width']]
+    data = []
+    results = {}
+
+    if len(request.args) > 0:
+        for arg in request.args:
+            if arg in REQUIRED_PARAMETERS:
+                param = request.args.get(arg)
+                data.append(param)
+                results[arg] = param
+    else:
+        for arg in request.form:
+            if arg in REQUIRED_PARAMETERS:
+                param = request.form.get(arg)
+                data.append(param)
+                results[arg] = param
+
+    if len(data) < len(REQUIRED_PARAMETERS):
+        return "<h1>Error - missing parameter</h1>"
+
     data = np.array([np.asarray(data, dtype=float)])
-
     prediction = app.predictor.predict(data)
-    print('INFO Prediction: {}'.format(prediction[0]))
+    results['prediction'] = str(prediction[0])
+    return jsonify(results)
 
-    return render_template('index.html', pred=prediction[0])
 
 def main():
     """Run the app."""
