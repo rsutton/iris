@@ -1,20 +1,12 @@
 version: 2
 
-defaults: &defaults
-  # machine:
-  #   docker_layer_caching: true
-  environment:
-    foo: bar
-
 jobs:
   build:
-    <<: *defaults
     docker:
       - image: docker:17.05.0-ce-git
     steps:
       - checkout
       - setup_remote_docker
-      # build the application image
       - run: docker build -t rsutton/iris:$CIRCLE_SHA1 .
       - run: docker run -d --rm --name iris -p 8000:8000 rsutton/iris:$CIRCLE_SHA1
       - run: docker exec -it iris python -m unittest discover -s iris/tests
