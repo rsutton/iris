@@ -1,15 +1,20 @@
 from flask import Flask, request, jsonify, render_template
 import numpy as np
+import os
 import pickle
 from sklearn.svm import SVC
 
 app = Flask(__name__)
-REQUIRED_PARAMETERS = ('sepal_length', 'sepal_width', 'petal_length', 'petal_width')
+REQUIRED_PARAMETERS = ('sepal_length', 'sepal_width', 'petal_length',
+                       'petal_width')
 
 
 @app.before_first_request
 def load_model_to_app():
-    app.predictor = pickle.load(open('./static/model/model.pickle', 'rb'))
+    this_dir = os.path.dirname(__file__)
+    filename = os.path.join(this_dir, './static/model/model.pickle')
+    with open(filename, 'rb') as fh:
+        app.predictor = pickle.load(fh)
 
 
 @app.route("/")

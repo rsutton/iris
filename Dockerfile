@@ -1,8 +1,6 @@
 FROM python:3.7
 
-ADD static /app/static/
-ADD templates /app/templates/
-COPY app.py /app
+ADD iris /app
 COPY requirements.txt /app
 
 WORKDIR /app

@@ -2,10 +2,15 @@ version: 2
 jobs:
   build:
     docker:
-    - image: circleci/python:3.7.6
+    - image: docker:17.05.0-ce-git
+    # - image: circleci/python:3.7.6
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Install dependencies
+          command: |
+            apk update && apk upgrade && apk add --no-cache jq curl
       # build the application image
       - run: docker build -t rsutton/iris:$CIRCLE_BRANCH .
       # save the image
@@ -14,12 +19,8 @@ jobs:
       - run: |
           docker run -d --name iris -p 8000:8000 rsutton/iris:$CIRCLE_BRANCH
       - run: |
-          status=$(curl -s -X POST http://localhost:8000/api/v1/predict?sepal_length=1&sepal_width=1&petal_length=1&petal_width=1 |
-          jq -r '.prediction')
-          if [ "$status" != "1" ]; then
-            echo "Prediction error: expected 1 got $status"
-            exit 1
-          fi
+
       - run: |
-          docker stop -d --name iris 
+          docker stop $(docker container ls -q --filter name=iris*)
+ 
 
