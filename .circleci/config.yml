@@ -7,7 +7,7 @@ executors:
     docker:
       - image: docker:17.05.0-ce-git
 jobs:
-  build-docker:
+  build:
     executor: docker-publisher
     steps:
       - checkout
@@ -25,7 +25,7 @@ jobs:
           paths:
             - ./image.tar
 
-  test-docker:
+  test:
     executor: docker-publisher
     steps:
       - attach_workspace:
@@ -37,7 +37,7 @@ jobs:
       - run: docker run -d --rm --name iris -p 8000:8000 $IMAGE_NAME
       - run: docker exec -t iris python -m unittest discover -s iris/tests
 
-  publish-docker:
+  publish:
     executor: docker-publisher
     steps:
       - attach_workspace:
@@ -52,4 +52,10 @@ jobs:
             echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
             docker push $IMAGE_NAME:latest
 
-
+workflows:
+  version: 2.1
+  build_and_test:
+    jobs:
+      - build
+      - test
+      
