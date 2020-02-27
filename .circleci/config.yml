@@ -18,9 +18,6 @@ jobs:
           name: Build latest
           command: docker build . -t $IMAGE_NAME:latest
       - run:
-          name: Build tagged
-          command: docker build . -t $IMAGE_NAME:${CIRCLE_TAG}
-      - run:
           name: Archive image
           command: docker save -o image.tar $IMAGE_NAME
       - persist_to_workspace:
@@ -55,7 +52,11 @@ workflows:
   main:
     jobs:
       - build-docker
-  build_and_deploy:
+  build_and_test:
+    jobs:
+      - build-docker
+      - test-docker
+  deploy:
     jobs:
       - build-docker:
           filters:
