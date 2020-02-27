@@ -28,6 +28,12 @@ jobs:
   test-docker:
     executor: docker-publisher
     steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          name: Load archived image
+          command: docker load -i image.tar
       - run: docker run -d --rm --name iris -p 8000:8000 $IMAGE_NAME
       - run: docker exec -t iris python -m unittest discover -s iris/tests
 
@@ -54,26 +60,14 @@ workflows:
   build_and_test:
     jobs:
       - build-docker
-      - test-docker
-  deploy:
-    jobs:
-      - build-docker:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
       - test-docker:
           requires:
-            - build-docker
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+            - main
+  deploy:
+    jobs:
       - publish-docker:
           requires:
-            - build-docker
+            - build_and_test
           filters:
             branches:
               ignore: /.*/
