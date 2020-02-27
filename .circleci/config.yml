@@ -52,20 +52,4 @@ jobs:
             echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
             docker push $IMAGE_NAME:latest
 
-workflows:
-  version: 2.1
-  build_and_test:
-    jobs:
-      - build-docker
-      - test-docker
-  deploy:
-    jobs:
-      - publish-docker:
-          requires:
-            - build-docker
-            - test-docker
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+
