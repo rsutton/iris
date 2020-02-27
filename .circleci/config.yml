@@ -7,6 +7,15 @@ executors:
     docker:
       - image: docker:17.05.0-ce-git
 jobs:
+  developer:
+    executor: docker-publisher
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker build . -t $IMAGE_NAME:${CIRCLE_SHA1}
+      - run: docker run -d --rm --name iris -p 8000:8000 $IMAGE_NAME:${CIRCLE_SHA1}
+      - run: docker exec -t iris python -m unittest discover -s iris/tests
+
   build:
     executor: docker-publisher
     steps:
@@ -17,6 +26,9 @@ jobs:
       - run:
           name: Build latest
           command: docker build . -t $IMAGE_NAME:latest
+      - run:
+          name: Build tagged
+          command: docker build . -t $IMAGE_NAME:${CIRCLE_TAG}
       - run:
           name: Archive image
           command: docker save -o image.tar $IMAGE_NAME
@@ -49,18 +61,16 @@ jobs:
       - run:
           name: Publish to Docker Hub
           command: |
-            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USER}" --password-stdin
             docker push $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:${CIRCLE_TAG}
 
 workflows:
   version: 2.1
-  build_and_test:
+  developer:
     jobs:
-      - build  
-      - test:
-          requires:
-            - build
-  build_and_deploy:
+      - dev
+  build_test_and_deploy:
     jobs:
       - build:
           filters:
