@@ -1,13 +1,83 @@
-version: 2
+version: 2.1
 
 jobs:
-  build:
-    docker:
-      - image: docker:17.05.0-ce-git
+  build-docker:
+    executor: docker-publisher
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - setup_remote_docker
-      - run: docker build -t rsutton/iris:$CIRCLE_SHA1 .
-      - run: docker run -d --rm --name iris -p 8000:8000 rsutton/iris:$CIRCLE_SHA1
-      - run: docker exec -it iris python -m unittest discover -s iris/tests
-      - run: docker stop iris
+      - run:
+          name: Build latest
+          command: docker build . -t $IMAGE_NAME:latest
+      - run:
+          name: Build tagged
+          command: docker build . -t $IMAGE_NAME:${CIRCLE_TAG}
+      - run:
+          name: Archive image
+          command: docker save -o image.tar $IMAGE_NAME
+      - persist_to_workspace:
+          root: ~/iris
+          paths:
+            - ./image.tar
+
+  test-docker:
+    executor: docker-publisher
+    steps:
+      - run: docker run -d --rm --name iris -p 8000:8000 $IMAGE_NAME
+      - run: docker exec -t iris python -m unittest discover -s iris/tests
+
+  publish-docker:
+    executor: docker-publisher
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          name: Load archived image
+          command: docker load -i image.tar
+      - run:
+          name: Publish to Docker Hub
+          command: |
+            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            docker push $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:${CIRCLE_TAG}
+
+workflows:
+  version: 2.1
+  main:
+    jobs:
+      - build
+  build_and_deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - build-docker:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - test-docker:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - publish-docker:
+          requires:
+            - build-docker
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
