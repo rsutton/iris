@@ -5,8 +5,9 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: Build the Docker Image
     steps:
-        uses: actions/checkout@v2
-        name: Build the Docker Image
-        run: docker build . --file Dockerfile --tag rsutton/iris:$GITHUB_REF
-        
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build 
+      run: docker build . --file Dockerfile --tag rsutton/iris:$GITHUB_REF
