@@ -1,5 +1,11 @@
 version: 2.1
-
+executors:
+  docker-publisher:
+    working_directory: ~/iris
+    environment: 
+      IMAGE_NAME: rsutton/iris 
+    docker:
+      - image: docker:17.05.0-ce-git
 jobs:
   build-docker:
     executor: docker-publisher
