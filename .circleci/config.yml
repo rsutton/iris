@@ -54,15 +54,10 @@ jobs:
 
 workflows:
   version: 2.1
-  main:
-    jobs:
-      - build-docker
   build_and_test:
     jobs:
       - build-docker
-      - test-docker:
-          requires:
-            - main
+      - test-docker
   deploy:
     jobs:
       - publish-docker:
