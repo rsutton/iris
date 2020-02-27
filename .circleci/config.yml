@@ -62,7 +62,8 @@ workflows:
     jobs:
       - publish-docker:
           requires:
-            - build_and_test
+            - build-docker
+            - test-docker
           filters:
             branches:
               ignore: /.*/
