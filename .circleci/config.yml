@@ -48,18 +48,10 @@ workflows:
   version: 2.1
   main:
     jobs:
-      - build
+      - build-docker
   build_and_deploy:
     jobs:
-      - build:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
       - build-docker:
-          requires:
-            - build
           filters:
             branches:
               ignore: /.*/
@@ -67,7 +59,7 @@ workflows:
               only: /^\d+\.\d+\.\d+$/
       - test-docker:
           requires:
-            - build
+            - build-docker
           filters:
             branches:
               ignore: /.*/
