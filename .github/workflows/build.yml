@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build the Docker Image
+    name: Build and Test Docker Image
     steps:
     - name: Checkout
       uses: actions/checkout@v2
