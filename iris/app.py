@@ -26,19 +26,12 @@ def index():
 def predict():
     data = []
     results = {}
-
-    if len(request.args) > 0:
-        for arg in request.args:
-            if arg in REQUIRED_PARAMETERS:
-                param = request.args.get(arg)
-                data.append(param)
-                results[arg] = param
-    else:
-        for arg in request.form:
-            if arg in REQUIRED_PARAMETERS:
-                param = request.form.get(arg)
-                data.append(param)
-                results[arg] = param
+    # use request.form with POST, request.args would be for GETs
+    for arg in request.form:
+        if arg in REQUIRED_PARAMETERS:
+            param = request.form.get(arg)
+            data.append(param)
+            results[arg] = param
 
     if len(data) < len(REQUIRED_PARAMETERS):
         return "<h1>Error - missing parameter</h1>"
